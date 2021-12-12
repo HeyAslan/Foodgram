@@ -4,11 +4,11 @@
 
 ### Запустить проекта локально:
   
-Клонировать репозиторий и перейти в него:  
+Клонировать репозиторий и перейти в директорию infra:  
   
 ```  
 git clone https://github.com/yankovskaya-ktr/foodgram-project-react.git
-cd foodgram-project-react
+cd foodgram-project-react/infra
 ``` 
 
 Создать файл .env по шаблону .env.template:
@@ -37,6 +37,17 @@ docker-compose exec web python manage.py createsuperuser
   
 ```  
 docker-compose exec web python manage.py import_data
+```
+
+### Ресурсы:
+
+Главная страница:
+```
+http://localhost/
+```
+Документация API:
+```
+http://localhost/api/docs/redoc.html
 ```
 
 ### Автор: 
