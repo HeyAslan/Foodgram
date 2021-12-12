@@ -6,7 +6,7 @@
 
 ### Запустить проекта локально:
   
-Клонировать репозиторий и перейти в директорию infra:  
+Клонировать репозиторий и перейти в директорию infra/:  
   
 ```  
 git clone https://github.com/yankovskaya-ktr/foodgram-project-react.git
