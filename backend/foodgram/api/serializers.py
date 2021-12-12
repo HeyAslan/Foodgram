@@ -1,9 +1,9 @@
-from drf_extra_fields.fields import Base64ImageField
 from djoser.serializers import UserCreateSerializer
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from recipes.models import (Ingredient, IngredientRecipe, Recipe, Tag)
 
+from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag
 from users.models import User
 
 
@@ -120,18 +120,21 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
         return data
 
-    def create(self, validated_data):
-        tags = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients_amount')
-
-        recipe = Recipe.objects.create(**validated_data)
-        recipe.tags.add(*tags)
+    @staticmethod
+    def add_ingredients(recipe, ingredients_data):
         for ingredient_data in ingredients_data:
             IngredientRecipe.objects.create(
                 recipe=recipe,
                 amount=ingredient_data.get('amount'),
                 ingredient=ingredient_data.get('ingredient')
             )
+
+    def create(self, validated_data):
+        tags = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('ingredients_amount')
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.tags.add(*tags)
+        self.add_ingredients(recipe, ingredients_data)
         return recipe
 
     def update(self, instance, validated_data):
@@ -142,12 +145,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         if 'ingredients_amount' in validated_data:
             ingredients_data = validated_data.pop('ingredients_amount')
             IngredientRecipe.objects.filter(recipe=instance).delete()
-            for ingredient_data in ingredients_data:
-                IngredientRecipe.objects.create(
-                    recipe=instance,
-                    amount=ingredient_data.get('amount'),
-                    ingredient=ingredient_data.get('ingredient')
-                )
+            self.add_ingredients(instance, ingredients_data)
         return super().update(instance, validated_data)
 
 

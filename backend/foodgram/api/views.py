@@ -1,30 +1,52 @@
 import io
 import os
+
 from django.conf import settings
 from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
-from reportlab.pdfgen import canvas
+from djoser.views import UserViewSet as BaseUserViewSet
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from rest_framework import mixins, permissions, status, viewsets
+from reportlab.pdfgen import canvas
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from djoser.views import UserViewSet as BaseUserViewSet
-
-from users.models import User
 from recipes.models import (Ingredient, IngredientRecipe,
                             Recipe, Subscription, Tag)
+from users.models import User
+
 from .filters import RecipeFilterSet
+from .mixins import ListRetrieveViewSet
 from .pagination import CustomPagination
 from .permissions import IsAuthorOrStaffOrReadOnly
 from .serializers import (IngredientSerializer, RecipeCreateSerializer,
                           RecipeGetSerializer, RecipeReducedSerializer,
-                          SubscriptionSerializer, TagSerializer,)
+                          SubscriptionSerializer, TagSerializer)
+
+
+def related_field_add_remove(obj, related_field, request, serializer,
+                             error_message_get, error_message_delete):
+    queryset = getattr(obj, related_field, None)
+    if queryset is None:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    if request.method == 'GET':
+        if queryset.filter(id=request.user.id).exists():
+            return Response(error_message_get,
+                            status=status.HTTP_400_BAD_REQUEST)
+        queryset.add(request.user)
+        serializer = serializer(obj)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    if request.method == 'DELETE':
+        if not queryset.filter(id=request.user.id).exists():
+            return Response(error_message_delete,
+                            status=status.HTTP_400_BAD_REQUEST)
+        queryset.remove(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserViewSet(BaseUserViewSet):
@@ -84,12 +106,6 @@ class UserViewSet(BaseUserViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class ListRetrieveViewSet(mixins.ListModelMixin,
-                          mixins.RetrieveModelMixin,
-                          viewsets.GenericViewSet):
-    pass
-
-
 class IngredientViewSet(ListRetrieveViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
@@ -113,14 +129,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = RecipeFilterSet
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        if self.request.query_params.get('is_favorited') == 'true':
-            queryset = queryset.filter(is_favorited=self.request.user)
-        if self.request.query_params.get('is_in_shopping_cart') == 'true':
-            queryset = queryset.filter(is_in_shopping_cart=self.request.user)
-        return queryset
-
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
             return RecipeGetSerializer
@@ -140,24 +148,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         Добавить/удалить рецепт из избранного
         """
         recipe = self.get_object()
-        if request.method == 'GET':
-            if recipe.is_favorited.filter(id=request.user.id).exists():
-                return Response(
-                    f'Рецепт "{recipe.name}" уже добавлен в ваше избранное',
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            recipe.is_favorited.add(request.user)
-            serializer = RecipeReducedSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        if request.method == 'DELETE':
-            if not recipe.is_favorited.filter(id=request.user.id).exists():
-                return Response(
-                    f'Рецепт "{recipe.name}" отсутствует в вашем избранном',
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            recipe.is_favorited.remove(request.user)
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        error_message_get = (f'Рецепт "{recipe.name}"'
+                             ' уже добавлен в ваше избранное')
+        error_message_delete = (f'Рецепт "{recipe.name}"'
+                                'отсутствует в вашем избранном')
+        return related_field_add_remove(
+            obj=recipe,
+            related_field='is_favorited',
+            request=request,
+            serializer=RecipeReducedSerializer,
+            error_message_get=error_message_get,
+            error_message_delete=error_message_delete
+        )
 
     @action(detail=True,
             methods=['GET', 'DELETE'],
@@ -167,25 +169,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         Добавить/удалить рецепт из списка покупок
         """
         recipe = self.get_object()
-        if request.method == 'GET':
-            if recipe.is_in_shopping_cart.filter(id=request.user.id).exists():
-                return Response(
-                    f'Рецепт "{recipe.name}" уже добавлен в ваши покупки',
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            recipe.is_in_shopping_cart.add(request.user)
-            serializer = RecipeReducedSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        if request.method == 'DELETE':
-            if not recipe.is_in_shopping_cart.filter(
-                        id=request.user.id).exists():
-                return Response(
-                    f'Рецепт "{recipe.name}" отсутствует в ваших покупках',
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            recipe.is_in_shopping_cart.remove(request.user)
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        error_message_get = (f'Рецепт "{recipe.name}"'
+                             ' уже добавлен в ваши покупки')
+        error_message_delete = (f'Рецепт "{recipe.name}"'
+                                'отсутствует в ваших покупках')
+        return related_field_add_remove(
+            obj=recipe,
+            related_field='is_in_shopping_cart',
+            request=request,
+            serializer=RecipeReducedSerializer,
+            error_message_get=error_message_get,
+            error_message_delete=error_message_delete
+        )
 
     @action(detail=False,
             methods=['GET'],
