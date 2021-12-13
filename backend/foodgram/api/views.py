@@ -171,8 +171,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         shopping_cart = IngredientRecipe.objects.filter(
             recipe__is_in_shopping_cart__id=request.user.id).values(
-                'ingredient__name', 'ingredient__measurement_unit'
-            ).annotate(amount=Sum('amount'))
+                'ingredient__name', 'ingredient__measurement_unit').annotate(
+                    amount=Sum('amount'))
 
         def make_content(pdf):
             font = os.path.join(settings.BASE_DIR, 'fonts/Verdana.ttf')
