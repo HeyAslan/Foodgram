@@ -199,9 +199,9 @@ class SubscriptionSerializer(UserSerializer):
     def get_recipes_count(self, obj):
         return obj.recipes.count()
 
-    # Сериализатор используется только для авторов,
-    # на которых подписан текущий пользователь
     def get_is_subscribed(self, obj):
+        # Сериализатор используется только для авторов,
+        # на которых подписан текущий пользователь
         return True
 
     def get_recipes(self, obj):
