@@ -6,7 +6,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ~/.env
+      - /home/yanka9689/foodrgam/.env
   
   web:
     image: yankovskayaktr/foodgram_backend:latest
@@ -17,24 +17,24 @@ services:
     depends_on:
       - db
     env_file:
-      - ~/.env
+      - /home/yanka9689/foodrgam/.env
 
   frontend:
     build:
-      context: ~/frontend 
+      context: /home/yanka9689/foodrgam/frontend 
       dockerfile: Dockerfile 
     volumes:
-      - ~/frontend/:/app/result_build/
+      - /home/yanka9689/foodrgam/frontend/:/app/result_build/
      
   nginx:
     image: nginx:1.19.3
     ports:
       - 80:80
     volumes:
-      - ~/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ~/frontend/build:/usr/share/nginx/html/
-      - ~/docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
-      - ~/docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
+      - /home/yanka9689/foodrgam/nginx.conf:/etc/nginx/conf.d/default.conf
+      - /home/yanka9689/foodrgam/frontend/build:/usr/share/nginx/html/
+      - /home/yanka9689/foodrgam/docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
+      - /home/yanka9689/foodrgam/docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
