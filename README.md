@@ -11,7 +11,7 @@
 http://178.154.231.118/
 http://praktikum-eyank.tk/
 
-Admin credentials:
+Администратор:
 admin@mail.ru
 adminadmin
 
