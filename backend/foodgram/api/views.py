@@ -180,7 +180,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
             font = os.path.join(settings.BASE_DIR, 'fonts/Verdana.ttf')
             pdfmetrics.registerFont(TTFont('Verdana', font))
-            pdf.setFont('Verdana', 20)
+            # pdf.setFont('Verdana', 20)
             # pdf.drawCentredString(300, 770, 'СПИСОК ПОКУПОК')
             # pdf.line(30, 750, 550, 750)
             # text = pdf.beginText(40, 680)
@@ -189,6 +189,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             item_index = 1
 
             for page in pages:
+                pdf.setFont('Verdana', 20)
                 pdf.drawCentredString(300, 770, 'СПИСОК ПОКУПОК')
                 pdf.line(30, 750, 550, 750)
                 text = pdf.beginText(40, 680)
@@ -204,9 +205,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     item_index += 1
                 pdf.drawText(text)
                 pdf.showPage()
-
-            pdf.drawText(text)
-            pdf.showPage()
 
         buffer = io.BytesIO()
         pdf = canvas.Canvas(buffer)
