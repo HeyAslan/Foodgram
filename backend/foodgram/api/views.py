@@ -1,15 +1,10 @@
 import io
-import os
 
-from django.conf import settings
 from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
 from djoser.views import UserViewSet as BaseUserViewSet
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -26,7 +21,7 @@ from .permissions import IsAuthorOrStaffOrReadOnly
 from .serializers import (IngredientSerializer, RecipeCreateSerializer,
                           RecipeGetSerializer, RecipeReducedSerializer,
                           SubscriptionSerializer, TagSerializer)
-from .utils import related_field_add_remove
+from .utils import create_pdf, related_field_add_remove
 
 
 class UserViewSet(BaseUserViewSet):
@@ -174,43 +169,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 'ingredient__name', 'ingredient__measurement_unit').annotate(
                     amount=Sum('amount'))
 
-        def make_content(pdf, shopping_cart):
-            pages = [shopping_cart[x:x + 10] for x in range(
-                     0, len(shopping_cart), 10)]
-
-            font = os.path.join(settings.BASE_DIR, 'fonts/Verdana.ttf')
-            pdfmetrics.registerFont(TTFont('Verdana', font))
-            # pdf.setFont('Verdana', 20)
-            # pdf.drawCentredString(300, 770, 'СПИСОК ПОКУПОК')
-            # pdf.line(30, 750, 550, 750)
-            # text = pdf.beginText(40, 680)
-            # text.setFont('Verdana', 12)
-            # text.setLeading(18)
-            item_index = 1
-
-            for page in pages:
-                pdf.setFont('Verdana', 20)
-                pdf.drawCentredString(300, 770, 'СПИСОК ПОКУПОК')
-                pdf.line(30, 750, 550, 750)
-                text = pdf.beginText(40, 680)
-                text.setFont('Verdana', 12)
-                text.setLeading(18)
-                for item in page:
-                    text.textLine(
-                        f'{item_index}. '
-                        F'{item["ingredient__name"].capitalize()} — '
-                        f'{item["amount"]} '
-                        F'{item["ingredient__measurement_unit"]}'
-                    )
-                    item_index += 1
-                pdf.drawText(text)
-                pdf.showPage()
-
         buffer = io.BytesIO()
-        pdf = canvas.Canvas(buffer)
-        make_content(pdf, shopping_cart)
-        pdf.showPage()
-        pdf.save()
+        create_pdf(buffer, shopping_cart)
+        # pdf = canvas.Canvas(buffer)
+        # make_content(pdf, shopping_cart)
+        # pdf.save()
         buffer.seek(0)
 
         return FileResponse(buffer, as_attachment=True,
