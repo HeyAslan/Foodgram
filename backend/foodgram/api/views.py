@@ -174,33 +174,43 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 'ingredient__name', 'ingredient__measurement_unit').annotate(
                     amount=Sum('amount'))
 
-        def make_content(pdf):
+        def make_content(pdf, shopping_cart):
+            pages = [shopping_cart[x:x + 10] for x in range(
+                     0, len(shopping_cart), 10)]
+
             font = os.path.join(settings.BASE_DIR, 'fonts/Verdana.ttf')
             pdfmetrics.registerFont(TTFont('Verdana', font))
             pdf.setFont('Verdana', 20)
-            pdf.drawCentredString(300, 770, 'СПИСОК ПОКУПОК')
-            pdf.line(30, 750, 550, 750)
-            text = pdf.beginText(40, 680)
-            text.setFont('Verdana', 12)
-            text.setLeading(18)
-            i = 1
-            for item in shopping_cart:
-                if i == 15:
-                    pdf.drawText(text)
-                    pdf.showPage()
-                    text = pdf.beginText(40, 680)
-                    text.setFont('Verdana', 12)
-                    text.setLeading(18)
-                text.textLine(
-                    f'{i}. {item["ingredient__name"].capitalize()} — '
-                    f'{item["amount"]} {item["ingredient__measurement_unit"]}'
-                )
-                i += 1
+            # pdf.drawCentredString(300, 770, 'СПИСОК ПОКУПОК')
+            # pdf.line(30, 750, 550, 750)
+            # text = pdf.beginText(40, 680)
+            # text.setFont('Verdana', 12)
+            # text.setLeading(18)
+            item_index = 1
+
+            for page in pages:
+                pdf.drawCentredString(300, 770, 'СПИСОК ПОКУПОК')
+                pdf.line(30, 750, 550, 750)
+                text = pdf.beginText(40, 680)
+                text.setFont('Verdana', 12)
+                text.setLeading(18)
+                for item in page:
+                    text.textLine(
+                        f'{item_index}. '
+                        F'{item["ingredient__name"].capitalize()} — '
+                        f'{item["amount"]} '
+                        F'{item["ingredient__measurement_unit"]}'
+                    )
+                    item_index += 1
+                pdf.drawText(text)
+                pdf.showPage()
+
             pdf.drawText(text)
+            pdf.showPage()
 
         buffer = io.BytesIO()
         pdf = canvas.Canvas(buffer)
-        make_content(pdf)
+        make_content(pdf, shopping_cart)
         pdf.showPage()
         pdf.save()
         buffer.seek(0)
