@@ -185,6 +185,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             text.setLeading(18)
             i = 1
             for item in shopping_cart:
+                if i > 15:
+                    pdf.showPage()
                 text.textLine(
                     f'{i}. {item["ingredient__name"].capitalize()} — '
                     f'{item["amount"]} {item["ingredient__measurement_unit"]}'
