@@ -171,9 +171,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         buffer = io.BytesIO()
         create_pdf(buffer, shopping_cart)
-        # pdf = canvas.Canvas(buffer)
-        # make_content(pdf, shopping_cart)
-        # pdf.save()
         buffer.seek(0)
 
         return FileResponse(buffer, as_attachment=True,
