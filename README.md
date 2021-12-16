@@ -12,13 +12,6 @@ http://178.154.231.118/
 
 http://praktikum-eyank.tk/
 
-#### Администратор:
-
-admin@mail.ru
-
-adminadmin
-
-
 ### Технологии
 Python 3.8.5, Django 3.0.5, Django REST framework 3.12.4
 
