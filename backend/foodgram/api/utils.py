@@ -51,10 +51,8 @@ def create_pdf(buffer, shopping_cart):
 
             for item in page:
                 text.textLine(
-                    f'{item_index}. '
-                    F'{item["ingredient__name"].capitalize()} — '
-                    f'{item["amount"]} '
-                    F'{item["ingredient__measurement_unit"]}'
+                    f'{item_index}. {item["ingredient__name"].capitalize()} — '
+                    f'{item["amount"]} {item["ingredient__measurement_unit"]}'
                 )
                 item_index += 1
             pdf.drawText(text)
