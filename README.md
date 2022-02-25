@@ -60,3 +60,7 @@ http://localhost/
 http://localhost/api/docs/redoc.html
 ```
 
+### Над проектом работали:  
+ - [Чернышов Виталий](https://github.com/vitaliy-chernyshov) — тимлид; модели юзеров, авторизация, регистрация, получение токенов. 
+ - [Екатерина Янковская](https://github.com/yankovskaya-ktr) — отзывы и комментарии + management-команда для импорта из CSV.
+ - [Ронжин Максим](https://github.com/MaxRonzhin) — произведения, жанры, категории. 
