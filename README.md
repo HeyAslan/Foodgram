@@ -6,10 +6,8 @@
 
 «Продуктовый помощник» — сайт, на котором можно публиковать рецепты и подписываться на публикации других авторов. Понравившиеся рецепты можно добавить в избранное. Сервис «Список покупок» позволяет скачать список продуктов, которые понадобятся для приготовления выбранных блюд.
 
-### Технологии
+### Технологии:
 Python 3.8.5, Django 3.0.5, Django REST framework 3.12.4
-
-### Инфраструктура
 PostgreSQL, Docker, Gunicorn, Nginx
 
 ### Локальный запуск проекта:
@@ -17,36 +15,36 @@ PostgreSQL, Docker, Gunicorn, Nginx
 Клонировать репозиторий и перейти в директорию infra/:  
   
 ```  
-git clone https://github.com/yankovskaya-ktr/foodgram-project-react.git
-cd foodgram-project-react/infra
+> git clone https://github.com/yankovskaya-ktr/foodgram-project-react.git
+> cd foodgram-project-react/infra
 ``` 
 
 Создать файл .env по шаблону .env.template:
 
 ```
-cp .env.template .env
+> cp .env.template .env
 ```
 Запустить приложение:
 
 ``` 
-docker-compose up
+> docker-compose up
 ``` 
 Провести миграции:
 
 ``` 
-docker-compose exec web python manage.py migrate --noinput
+> docker-compose exec web python manage.py migrate --noinput
 ``` 
 
 Создать суперпользователя:
 
 ``` 
-docker-compose exec web python manage.py createsuperuser
+> docker-compose exec web python manage.py createsuperuser
 ``` 
 
 Импортировать данные в базу данных:  
   
 ```  
-docker-compose exec web python manage.py import_data
+> docker-compose exec web python manage.py import_data
 ```
 
 ### Ресурсы:
@@ -60,5 +58,3 @@ http://localhost/
 http://localhost/api/docs/redoc.html
 ```
 
-### Автор: 
-https://github.com/yankovskaya-ktr/
